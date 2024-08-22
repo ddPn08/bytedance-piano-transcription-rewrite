@@ -114,6 +114,6 @@ class AcousticFeatureExtractor(nn.Module):
 
         (x, _) = self.gru(x)
         x = F.dropout(x, p=0.5, training=self.training, inplace=False)
-        output = self.fc(x)
+        output = torch.sigmoid(self.fc(x))
 
         return output

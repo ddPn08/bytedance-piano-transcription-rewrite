@@ -83,7 +83,7 @@ class RegressNoteModel(nn.Module):
         )
         (x, _) = self.onset_gru(x)
         x = F.dropout(x, p=0.5, training=self.training, inplace=False)
-        reg_onset_output = (self.onset_fc(x))
+        reg_onset_output = torch.sigmoid(self.onset_fc(x))
         """(batch_size, time_steps, classes_num)"""
 
         # Use onsets and offsets to condition frame-wise classification
@@ -92,7 +92,7 @@ class RegressNoteModel(nn.Module):
         )
         (x, _) = self.frame_gru(x)
         x = F.dropout(x, p=0.5, training=self.training, inplace=False)
-        frame_output = (
+        frame_output = torch.sigmoid(
             self.frame_fc(x)
         )  # (batch_size, time_steps, classes_num)
         """(batch_size, time_steps, classes_num)"""
