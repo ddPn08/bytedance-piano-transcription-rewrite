@@ -113,6 +113,7 @@ class TranscriberModule(LightningModule):
 
         self.all_loss.append(loss.item())
         self.epoch_loss.append(loss.item())
+        self.log("loss", loss)
         return loss
 
     def training_epoch_start(self, _):

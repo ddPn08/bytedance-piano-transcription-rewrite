@@ -52,7 +52,18 @@ class Dataset(data.Dataset):
             self.config.feature.sampling_rate * self.config.segment_seconds
         )
 
-    def __getitem__(self, segment: Segment):
+        self.segments: List[Segment] = []
+
+        for idx, m in enumerate(self.metadata):
+            start_time = 0.0
+
+            while start_time + self.config.segment_seconds < m.duration:
+                segment = Segment(idx=idx, start=start_time)
+                self.segments.append(segment)
+                start_time += self.config.hop_seconds
+
+    def __getitem__(self, idx: int):
+        segment = self.segments[idx]
         metadata = self.metadata[segment.idx]
         audio_path = os.path.join(
             self.dataset_path,
@@ -103,14 +114,13 @@ class Dataset(data.Dataset):
             pitch_shift=pitch_shift,
         )
 
-
         return {
             "audio": audio,
             **midi_data,
         }
 
     def __len__(self):
-        return len(self.metadata)
+        return len(self.segments)
 
     def collate_fn(self, batch: List[Dict]):
         return (
@@ -128,67 +138,3 @@ class Dataset(data.Dataset):
             torch.stack([data["reg_pedal_offset_roll"] for data in batch]),
             torch.stack([data["pedal_frame_roll"] for data in batch]),
         )
-
-
-class Sampler(data.Sampler):
-    def __init__(
-        self,
-        dataset: Dataset,
-        batch_size: int,
-        generator: torch.Generator = torch.Generator(),
-    ):
-        self.dataset = dataset
-        self.config: Config = dataset.config
-        self.metadata: List[Metadata] = dataset.metadata
-
-        self.batch_size = batch_size
-        self.generator = generator
-
-        self.segments: List[Segment] = []
-
-        for idx, m in enumerate(self.metadata):
-            start_time = 0.0
-
-            while start_time + self.config.segment_seconds < m.duration:
-                segment = Segment(idx=idx, start=start_time)
-                self.segments.append(segment)
-                start_time += self.config.hop_seconds
-
-        self.pointer = 0
-        # self.segment_indexes = np.arange(len(self.segment_list))
-        self.segment_indexes = torch.arange(len(self.segments))
-        self.segment_indexes = self.segment_indexes[
-            torch.randperm(len(self.segment_indexes), generator=self.generator)
-        ]
-
-    def __iter__(self):
-        while True:
-            batch_segment_list = []
-            i = 0
-            while i < self.batch_size:
-                index = self.segment_indexes[self.pointer]
-                self.pointer += 1
-
-                if self.pointer >= len(self.segment_indexes):
-                    self.pointer = 0
-                    self.segment_indexes = self.segment_indexes[
-                        torch.randperm(
-                            len(self.segment_indexes), generator=self.generator
-                        )
-                    ]
-
-                batch_segment_list.append(self.segments[index])
-                i += 1
-
-            yield batch_segment_list
-
-    def __len__(self):
-        return len(self.segments) // self.batch_size
-
-    def state_dict(self):
-        state = {"pointer": self.pointer, "segment_indexes": self.segment_indexes}
-        return state
-
-    def load_state_dict(self, state):
-        self.pointer = state["pointer"]
-        self.segment_indexes = state["segment_indexes"]

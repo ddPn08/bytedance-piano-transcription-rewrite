@@ -15,7 +15,7 @@ from lightning.pytorch.callbacks import (
 
 from modules.note import RegressNoteModel
 from modules.pedal import RegressPedalModel
-from training.dataset import Dataset, Sampler
+from training.dataset import Dataset
 from training.module import TranscriberModule
 
 torch.set_float32_matmul_precision("medium")
@@ -56,11 +56,11 @@ def main(
         generator=generator,
         max_pitch_shift=max_pitch_shift,
     )
-    sampler = Sampler(dataset, batch_size=batch_size, generator=generator)
     dataloader = data.DataLoader(
         dataset,
-        batch_sampler=sampler,
         num_workers=num_workers,
+        batch_size=batch_size,
+        shuffle=True,
         collate_fn=dataset.collate_fn,
     )
 
