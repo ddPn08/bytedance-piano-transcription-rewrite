@@ -54,7 +54,6 @@ class Dataset(data.Dataset):
         )
 
     def __getitem__(self, segment: Segment):
-        start = time.perf_counter()
         metadata = self.metadata[segment.idx]
         audio_path = os.path.join(
             self.dataset_path,
@@ -95,7 +94,6 @@ class Dataset(data.Dataset):
             audio = torchaudio.functional.pitch_shift(
                 audio, self.config.feature.sampling_rate, pitch_shift
             )
-        print(f"Time: {time.perf_counter() - start:.3f}s")
 
         midi_data = process_midi_events(
             notes,
