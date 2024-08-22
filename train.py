@@ -18,8 +18,6 @@ from modules.pedal import RegressPedalModel
 from training.dataset import Dataset, Sampler
 from training.module import TranscriberModule
 
-torch.autograd.set_detect_anomaly(True)
-
 torch.set_float32_matmul_precision("medium")
 
 
