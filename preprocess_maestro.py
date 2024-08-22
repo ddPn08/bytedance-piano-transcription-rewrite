@@ -92,8 +92,6 @@ def main(
             data[key] = raw_metadata[key][str(idx)]
         metadata.append(Metadata.model_validate(data))
 
-    metadata = [m for m in metadata if m.split == "train"][:1]
-
     segments: List[Segment] = []
 
     for idx, m in enumerate(metadata):

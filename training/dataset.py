@@ -1,13 +1,11 @@
 import json
 import os
-import pickle
 from typing import Dict, List, Literal
 
 import torch
 import torch.utils.data as data
 from pydantic import BaseModel
 
-from preprocess.midi import NoteData, PedalData, process_midi_events
 from training.config import Config
 
 
@@ -34,7 +32,6 @@ class Dataset(data.Dataset):
         self,
         dataset_path: str,
         split: Literal["train", "validation", "test"] = "train",
-        generator: torch.Generator = torch.Generator(),
     ):
         self.dataset_path = dataset_path
         config_path = os.path.join(dataset_path, "config.json")
@@ -49,11 +46,9 @@ class Dataset(data.Dataset):
 
         self.metadata = [m for m in self.metadata if m.split == split]
 
-        self.generator = generator
-
     def __getitem__(self, idx: int):
         segment = self.segments[idx]
-        
+
         audio_basename = os.path.basename(segment.audio_filename.replace("/", "-"))
         midi_basename = os.path.basename(segment.midi_filename.replace("/", "-"))
 

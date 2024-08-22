@@ -27,6 +27,7 @@ class MyProgressBar(TQDMProgressBar):
         items["loss"] = pl_module.all_loss[-1] if pl_module.all_loss else float("nan")
         items["all_loss_mean"] = np.mean(pl_module.all_loss or float("nan"))
         items["epoch_loss_mean"] = np.mean(pl_module.epoch_loss or float("nan"))
+        items['val_loss'] = pl_module.val_loss_all[-1] if pl_module.val_loss_all else float("nan")
         return items
 
 
@@ -52,13 +53,24 @@ def main(
     dataset = Dataset(
         dataset_dir,
         split="train",
-        generator=generator,
     )
     dataloader = data.DataLoader(
         dataset,
         num_workers=num_workers,
         batch_size=batch_size,
         shuffle=True,
+        collate_fn=dataset.collate_fn,
+    )
+
+    val_dataset = Dataset(
+        dataset_dir,
+        split="validation",
+    )
+    val_dataloader = data.DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
         collate_fn=dataset.collate_fn,
     )
 
@@ -108,7 +120,7 @@ def main(
         callbacks=callbacks,
         precision=precision,
     )
-    trainer.fit(module, dataloader)
+    trainer.fit(module, dataloader, val_dataloader)
 
 
 if __name__ == "__main__":
