@@ -41,7 +41,6 @@ def main(
     batch_size: int = 1,
     num_workers: int = 1,
     seed: int = -1,
-    max_pitch_shift: int = 0,
     logger: str = "none",
     logger_name: str = "training",
     logger_project: str = "piano-transcription",
@@ -54,7 +53,6 @@ def main(
         dataset_dir,
         split="train",
         generator=generator,
-        max_pitch_shift=max_pitch_shift,
     )
     dataloader = data.DataLoader(
         dataset,
