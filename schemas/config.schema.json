@@ -1,0 +1,119 @@
+{
+    "$defs": {
+        "FeatureConfig": {
+            "properties": {
+                "sampling_rate": {
+                    "default": 16000,
+                    "title": "Sampling Rate",
+                    "type": "integer"
+                },
+                "win_length": {
+                    "default": 2048,
+                    "title": "Win Length",
+                    "type": "integer"
+                },
+                "num_mels": {
+                    "default": 229,
+                    "title": "Num Mels",
+                    "type": "integer"
+                },
+                "f_min": {
+                    "default": 30,
+                    "title": "F Min",
+                    "type": "integer"
+                },
+                "center": {
+                    "default": true,
+                    "title": "Center",
+                    "type": "boolean"
+                },
+                "pad_mode": {
+                    "default": "reflect",
+                    "title": "Pad Mode",
+                    "type": "string"
+                },
+                "ref": {
+                    "default": 1.0,
+                    "title": "Ref",
+                    "type": "number"
+                },
+                "amin": {
+                    "default": 1e-10,
+                    "title": "Amin",
+                    "type": "number"
+                }
+            },
+            "title": "FeatureConfig",
+            "type": "object"
+        },
+        "MidiConfig": {
+            "properties": {
+                "num_notes": {
+                    "default": 88,
+                    "title": "Num Notes",
+                    "type": "integer"
+                },
+                "begin_note": {
+                    "default": 21,
+                    "title": "Begin Note",
+                    "type": "integer"
+                },
+                "velocity_scale": {
+                    "default": 128,
+                    "title": "Velocity Scale",
+                    "type": "integer"
+                }
+            },
+            "title": "MidiConfig",
+            "type": "object"
+        }
+    },
+    "properties": {
+        "feature": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/FeatureConfig"
+                }
+            ],
+            "default": {
+                "sampling_rate": 16000,
+                "win_length": 2048,
+                "num_mels": 229,
+                "f_min": 30,
+                "center": true,
+                "pad_mode": "reflect",
+                "ref": 1.0,
+                "amin": 1e-10
+            }
+        },
+        "midi": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/MidiConfig"
+                }
+            ],
+            "default": {
+                "num_notes": 88,
+                "begin_note": 21,
+                "velocity_scale": 128
+            }
+        },
+        "hop_seconds": {
+            "default": 1.0,
+            "title": "Hop Seconds",
+            "type": "number"
+        },
+        "frames_per_second": {
+            "default": 100,
+            "title": "Frames Per Second",
+            "type": "integer"
+        },
+        "segment_seconds": {
+            "default": 10.0,
+            "title": "Segment Seconds",
+            "type": "number"
+        }
+    },
+    "title": "Config",
+    "type": "object"
+}

@@ -1,0 +1,21 @@
+{
+    "$schema": "./schemas/config.schema.json",
+    "feature": {
+        "sampling_rate": 16000,
+        "win_length": 2048,
+        "num_mels": 229,
+        "f_min": 30,
+        "center": true,
+        "pad_mode": "reflect",
+        "ref": 1,
+        "amin": 1e-10
+    },
+    "midi": {
+        "num_notes": 88,
+        "begin_note": 21,
+        "velocity_scale": 128
+    },
+    "frames_per_second": 100,
+    "hop_seconds": 1,
+    "segment_seconds": 10
+}
