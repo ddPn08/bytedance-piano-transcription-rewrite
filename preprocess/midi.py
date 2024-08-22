@@ -61,8 +61,8 @@ def get_midi_events(midi_file: str):
     return notes, pedals
 
 
-def get_regression(x: torch.Tensor, config: Config):
-    step = 1.0 / config.frames_per_second
+def get_regression(x: torch.Tensor, frames_per_second: int):
+    step = 1.0 / frames_per_second
     output = torch.zeros_like(x)
 
     locts = torch.where(x < 0.5)[0]
@@ -80,6 +80,29 @@ def get_regression(x: torch.Tensor, config: Config):
 
         for t in range(locts[-1], len(x)):
             output[t] = step * (t - locts[-1]) - x[locts[-1]]
+
+    output = torch.clip(torch.abs(output), 0.0, 0.05) * 20
+    output = 1.0 - output
+
+    return output
+
+def get_regression_optimized(x: torch.Tensor, frames_per_second: int):
+    step = 1.0 / frames_per_second
+    output = torch.zeros_like(x)
+    locts = torch.where(x < 0.5)[0]
+
+    if len(locts) > 0:
+        # 前半部分の処理
+        output[:locts[0]] = step * (torch.arange(locts[0], device=x.device) - locts[0]) - x[locts[0]]
+
+        # 中間部分の処理
+        for i in range(len(locts) - 1):
+            mid = (locts[i] + locts[i + 1]) // 2
+            output[locts[i]:mid] = step * (torch.arange(locts[i], mid, device=x.device) - locts[i]) - x[locts[i]]
+            output[mid:locts[i + 1]] = step * (torch.arange(mid, locts[i + 1], device=x.device) - locts[i + 1]) - x[locts[i + 1]]
+
+        # 後半部分の処理
+        output[locts[-1]:] = step * (torch.arange(locts[-1], len(x), device=x.device) - locts[-1]) - x[locts[-1]]
 
     output = torch.clip(torch.abs(output), 0.0, 0.05) * 20
     output = 1.0 - output
@@ -169,8 +192,12 @@ def process_midi_events(
                     mask_roll[: end_frame + 1, pitch] = 0
 
     for k in range(config.midi.num_notes):
-        reg_onset_roll[:, k] = get_regression(reg_onset_roll[:, k], config)
-        reg_offset_roll[:, k] = get_regression(reg_offset_roll[:, k], config)
+        reg_onset_roll[:, k] = get_regression(
+            reg_onset_roll[:, k], config.frames_per_second
+        )
+        reg_offset_roll[:, k] = get_regression(
+            reg_offset_roll[:, k], config.frames_per_second
+        )
 
     for pitch, note in unpaired_notes.items():
         pitch = torch.clip(
@@ -207,8 +234,12 @@ def process_midi_events(
                     begin_frame / config.frames_per_second
                 )
 
-    reg_pedal_onset_roll = get_regression(reg_pedal_onset_roll, config)
-    reg_pedal_offset_roll = get_regression(reg_pedal_offset_roll, config)
+    reg_pedal_onset_roll = get_regression(
+        reg_pedal_onset_roll, config.frames_per_second
+    )
+    reg_pedal_offset_roll = get_regression(
+        reg_pedal_offset_roll, config.frames_per_second
+    )
 
     return {
         "onset_roll": onset_roll,
