@@ -1,4 +1,3 @@
-import time
 from typing import Dict, List, Optional
 
 import pretty_midi as pm
@@ -87,71 +86,6 @@ def get_regression(x: torch.Tensor, config: Config):
 
     return output
 
-def get_regression_2(x: torch.Tensor, config: Config):
-    step = 1.0 / config.frames_per_second
-    output = torch.zeros_like(x)
-
-    locts = torch.where(x < 0.5)[0]
-
-    if len(locts) > 0:
-        # First section before the first locts element
-        t = torch.arange(0, locts[0])
-        output[t] = step * (t - locts[0]) - x[locts[0]]
-
-        # Intermediate sections between locts elements
-        locts_pairs = torch.stack([locts[:-1], locts[1:]], dim=1)
-        midpoints = (locts_pairs[:, 0] + locts_pairs[:, 1]) // 2
-
-        for i in range(len(locts_pairs)):
-            t1 = torch.arange(locts_pairs[i, 0], midpoints[i])
-            output[t1] = step * (t1 - locts_pairs[i, 0]) - x[locts_pairs[i, 0]]
-
-            t2 = torch.arange(midpoints[i], locts_pairs[i, 1])
-            output[t2] = step * (t2 - locts_pairs[i, 1]) - x[locts_pairs[i, 1]]
-
-        # Last section after the last locts element
-        t = torch.arange(locts[-1], len(x))
-        output[t] = step * (t - locts[-1]) - x[locts[-1]]
-
-    # Vectorized operations for clipping and final output
-    output = torch.clip(torch.abs(output), 0.0, 0.05) * 20
-    output = 1.0 - output
-
-    return output
-
-def get_regression_batch(x: torch.Tensor, config: Config):
-    step = 1.0 / config.frames_per_second
-    output = torch.zeros_like(x)
-
-    locts = torch.where(x < 0.5)
-
-    if locts[0].numel() > 0:
-        for i in range(x.size(1)):  # Iterate over each note (column)
-            note_locts = locts[0][locts[1] == i]
-
-            if len(note_locts) > 0:
-                t = torch.arange(0, note_locts[0])
-                output[t, i] = step * (t - note_locts[0]) - x[note_locts[0], i]
-
-                locts_pairs = torch.stack([note_locts[:-1], note_locts[1:]], dim=1)
-                midpoints = (locts_pairs[:, 0] + locts_pairs[:, 1]) // 2
-
-                for j in range(len(locts_pairs)):
-                    t1 = torch.arange(locts_pairs[j, 0], midpoints[j])
-                    output[t1, i] = step * (t1 - locts_pairs[j, 0]) - x[locts_pairs[j, 0], i]
-
-                    t2 = torch.arange(midpoints[j], locts_pairs[j, 1])
-                    output[t2, i] = step * (t2 - locts_pairs[j, 1]) - x[locts_pairs[j, 1], i]
-
-                t = torch.arange(note_locts[-1], len(x))
-                output[t, i] = step * (t - note_locts[-1]) - x[note_locts[-1], i]
-
-    output = torch.clip(torch.abs(output), 0.0, 0.05) * 20
-    output = 1.0 - output
-
-    return output
-
-
 
 def process_midi_events(
     notes: List[NoteData],
@@ -184,7 +118,6 @@ def process_midi_events(
         ):
             pedal.offset_time = end_time
             segmenteed_pedals.append(pedal)
-    
 
     num_frames = int(round(config.segment_seconds * config.frames_per_second)) + 1
     onset_roll = torch.zeros((num_frames, config.midi.num_notes))
