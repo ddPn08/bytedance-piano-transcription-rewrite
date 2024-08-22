@@ -84,11 +84,6 @@ def main(
             data[key] = raw_metadata[key][str(idx)]
         metadata.append(Metadata.model_validate(data))
 
-    valid_metadata = [m for m in metadata if m.split in ["validation"]][:5]
-    train_metadata = [m for m in metadata if m.split in ["train"]][:5]
-
-    metadata = valid_metadata + train_metadata
-
     midi_dir = os.path.join(dest_path, "midi")
     audio_dir = os.path.join(dest_path, "audio")
     os.makedirs(midi_dir, exist_ok=True)
