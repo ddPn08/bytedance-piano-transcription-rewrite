@@ -109,7 +109,7 @@ def main(
             dirpath=checkpoint_dir,
             save_top_k=10,
             mode="min",
-            monitor="val_loss",
+            monitor="epoch",
         ),
         LearningRateMonitor(logging_interval="step"),
     ]
