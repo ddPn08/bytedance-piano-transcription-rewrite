@@ -105,7 +105,7 @@ def main(
     callbacks = [
         MyProgressBar(),
         ModelCheckpoint(
-            every_n_epochs=1,
+            save_every_n_steps=1000,
             dirpath=checkpoint_dir,
             save_top_k=10,
             mode="min",
