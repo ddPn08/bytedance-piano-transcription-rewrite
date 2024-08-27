@@ -13,7 +13,9 @@ def load_audio(
     audio, sr = torchaudio.load(wav_path)
     audio = audio.mean(dim=0)
     if sr != sampling_rate:
-        audio = torchaudio.functional.resample(audio, sr, sampling_rate)
+        audio = torchaudio.functional.resample(
+            audio, sr, sampling_rate, resampling_method="sinc_interp_kaiser"
+        )
 
     return audio
 

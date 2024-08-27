@@ -80,7 +80,7 @@ def main(
     config = dataset.config
 
     model = (
-        RegressNoteModel(config.midi.num_notes)
+        RegressNoteModel(config.midi.num_notes, config.feature.num_mels)
         if mode == "note"
         else RegressPedalModel()
     )

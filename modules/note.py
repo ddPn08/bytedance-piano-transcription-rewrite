@@ -7,15 +7,13 @@ from .utils import init_bn, init_gru, init_layer
 
 
 class RegressNoteModel(nn.Module):
-    def __init__(self, classes_num):
+    def __init__(self, classes_num: int, mel_bins: int):
         super(RegressNoteModel, self).__init__()
-
-        mel_bins = 229
 
         midfeat = 1792
         momentum = 0.01
 
-        self.bn0 = nn.BatchNorm2d(mel_bins, momentum)
+        self.bn0 = nn.BatchNorm2d(mel_bins, momentum=momentum)
 
         self.frame = AcousticFeatureExtractor(classes_num, midfeat, momentum)
         self.onset = AcousticFeatureExtractor(classes_num, midfeat, momentum)
@@ -70,6 +68,7 @@ class RegressNoteModel(nn.Module):
         x = x.transpose(1, 3)
         x = self.bn0(x)
         x = x.transpose(1, 3)
+
 
         frame_output = self.frame(x)  # (batch_size, time_steps, classes_num)
         reg_onset_output = self.onset(x)  # (batch_size, time_steps, classes_num)
