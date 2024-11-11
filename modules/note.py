@@ -69,7 +69,6 @@ class RegressNoteModel(nn.Module):
         x = self.bn0(x)
         x = x.transpose(1, 3)
 
-
         frame_output = self.frame(x)  # (batch_size, time_steps, classes_num)
         reg_onset_output = self.onset(x)  # (batch_size, time_steps, classes_num)
         reg_offset_output = self.offset(x)  # (batch_size, time_steps, classes_num)

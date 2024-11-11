@@ -4,11 +4,17 @@ import numpy as np
 import pretty_midi as pm
 import torch
 from pydantic import BaseModel
+from rust_ext import calc_regression
 
 from training.config import Config
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+
+def get_regression(x: torch.Tensor, frames_per_second: int):
+    x = x.cpu().numpy()
+    return torch.tensor(calc_regression(x, frames_per_second))
 
 
 class NoteData(BaseModel):
@@ -60,32 +66,6 @@ def get_midi_events(midi_file: str):
             current_pedal = None
 
     return notes, pedals
-
-
-def get_regression(x: torch.Tensor, frames_per_second: int):
-    step = 1.0 / frames_per_second
-    output = torch.zeros_like(x)
-
-    locts = torch.where(x < 0.5)[0]
-
-    if len(locts) > 0:
-        for t in range(0, locts[0]):
-            output[t] = step * (t - locts[0]) - x[locts[0]]
-
-        for i in range(0, len(locts) - 1):
-            for t in range(locts[i], (locts[i] + locts[i + 1]) // 2):
-                output[t] = step * (t - locts[i]) - x[locts[i]]
-
-            for t in range((locts[i] + locts[i + 1]) // 2, locts[i + 1]):
-                output[t] = step * (t - locts[i + 1]) - x[locts[i + 1]]
-
-        for t in range(locts[-1], len(x)):
-            output[t] = step * (t - locts[-1]) - x[locts[-1]]
-
-    output = torch.clip(torch.abs(output), 0.0, 0.05) * 20
-    output = 1.0 - output
-
-    return output
 
 
 def process_midi_events(
