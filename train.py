@@ -108,7 +108,7 @@ def main(
             every_n_train_steps=1000,
             dirpath=checkpoint_dir,
             save_top_k=10,
-            mode="min",
+            mode="max",
             monitor="epoch",
         ),
         LearningRateMonitor(logging_interval="step"),
