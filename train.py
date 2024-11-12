@@ -1,5 +1,5 @@
 import os
-from typing import Literal
+from typing import Literal, Optional
 
 import fire
 import numpy as np
@@ -27,7 +27,9 @@ class MyProgressBar(TQDMProgressBar):
         items["loss"] = pl_module.all_loss[-1] if pl_module.all_loss else float("nan")
         items["all_loss_mean"] = np.mean(pl_module.all_loss or float("nan"))
         items["epoch_loss_mean"] = np.mean(pl_module.epoch_loss or float("nan"))
-        items['val_loss'] = pl_module.val_loss_all[-1] if pl_module.val_loss_all else float("nan")
+        items["val_loss"] = (
+            pl_module.val_loss_all[-1] if pl_module.val_loss_all else float("nan")
+        )
         return items
 
 
@@ -46,6 +48,7 @@ def main(
     logger: str = "none",
     logger_name: str = "training",
     logger_project: str = "piano-transcription",
+    resume: Optional[str] = None,
 ):
     seed = seed if seed >= 0 else torch.initial_seed()
     generator = torch.Generator(device="cpu")
@@ -123,7 +126,7 @@ def main(
         callbacks=callbacks,
         precision=precision,
     )
-    trainer.fit(module, dataloader, val_dataloader)
+    trainer.fit(module, dataloader, val_dataloader, ckpt_path=resume)
 
 
 if __name__ == "__main__":
